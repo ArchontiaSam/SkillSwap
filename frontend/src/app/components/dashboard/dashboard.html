@@ -1,0 +1,215 @@
+<!-- ========================================================== -->
+<!-- NAVIGATION BAR -->
+<!-- ========================================================== -->
+<nav><div class="wrap">
+    <div class="logo"><span class="dot"></span>SkillSwap</div>
+    <div class="nav-links">
+      <a (click)="setTab('skills')" [class.active]="activeTab==='skills'">My Skills</a>
+      <a (click)="setTab('browse')" [class.active]="activeTab==='browse'">Explore Skills</a>
+      <a (click)="setTab('matches')" [class.active]="activeTab==='matches'">Matching Hub</a>
+      <a (click)="setTab('trust')" [class.active]="activeTab==='trust'">Trust Network</a>
+      <a (click)="setTab('exchanges')" [class.active]="activeTab==='exchanges'">Exchanges & Reviews</a>
+      <a (click)="setTab('profile')" [class.active]="activeTab==='profile'">Profile</a>
+    </div>
+    <div class="nav-cta">
+      <span *ngIf="currentUser" class="welcome-text">Welcome, {{ currentUser.name }}</span>
+      <button (click)="logout()" class="btn btn-ghost" type="button">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<div class="dashboard-container">
+
+  <!-- ================= TAB: MY SKILLS ================= -->
+  <div *ngIf="activeTab === 'skills'">
+    <div class="add-skill-box">
+      <h3>{{ isEditing ? 'Edit Skill' : 'Add New Skill' }}</h3>
+      <div class="form-group-inline" style="flex-direction: column; gap: 8px;">
+        <input type="text" [(ngModel)]="newSkillName" name="newSkillName" placeholder="Skill name (e.g., Python)">
+        <input type="text" [(ngModel)]="newSkillCategory" name="newSkillCategory" placeholder="Category (e.g., Programming)">
+        <select [(ngModel)]="newSkillType" name="newSkillType" style="padding: 5px;">
+          <option value="OFFERED">I offer this skill (OFFERED)</option>
+          <option value="WANTED">I want to learn this skill (WANTED)</option>
+        </select>
+        <button (click)="saveSkill()" class="btn btn-primary" type="button">
+          {{ isEditing ? 'Save Changes' : 'Add Skill' }}
+        </button>
+        <button *ngIf="isEditing" (click)="clearForm()" class="btn btn-ghost" type="button">Cancel</button>
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage" style="color: red; margin-bottom: 10px;">{{ errorMessage }}</div>
+
+    <div class="skills-list-section">
+      <h3>My Skills</h3>
+      <div *ngIf="userSkills.length === 0">You haven't added any skills yet.</div>
+      <ul>
+        <li *ngFor="let skill of userSkills"
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span><strong>{{ skill.skillName }}</strong> - {{ skill.category }} (<em>{{ skill.type }}</em>)</span>
+          <div>
+            <button (click)="startEdit(skill)" class="btn-edit" type="button" style="margin-right: 5px;">Edit</button>
+            <button (click)="deleteSkill(skill.id)" class="btn-delete" type="button">Delete</button>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ================= TAB: EXPLORE SKILLS ================= -->
+  <div *ngIf="activeTab === 'browse'">
+    <h2>Explore Skills</h2>
+    <div *ngIf="skillsLoading">Loading skills...</div>
+    <ul>
+      <li *ngFor="let s of allSkills" style="margin-bottom:6px;">
+        <strong>{{ s.name }}</strong> — {{ s.category }}
+        <span *ngIf="s.description"> · {{ s.description }}</span>
+      </li>
+    </ul>
+    <div *ngIf="!skillsLoading && allSkills.length === 0">No skills found yet.</div>
+  </div>
+
+  <!-- ================= TAB: MATCHING HUB ================= -->
+  <div *ngIf="activeTab === 'matches'">
+    <h2>Matching Hub</h2>
+    <div *ngIf="matchesLoading">Loading matches...</div>
+    <div *ngIf="exchangeMessage" style="margin-bottom:10px;">{{ exchangeMessage }}</div>
+
+    <h3>Direct Matches</h3>
+<div *ngIf="directMatches.length === 0">No direct matches found.</div>
+<ul>
+  <li *ngFor="let m of directMatches" style="margin-bottom: 10px; border:1px solid #eee; padding:8px; border-radius:6px;">
+     <div><strong>{{ m.matchedUsername }}</strong> ⭐ {{ m.matchedUserRating | number:'1.1-1' }} (User #{{ m.matchedUserId }})</div>
+    <div>You request: <strong>{{ m.offeredSkillName }}</strong> ↔ You offer: <strong>{{ m.requestedSkillName }}</strong></div>
+    <button (click)="proposeExchange(m)"
+      [disabled]="proposedKeys.has(matchKey(m))"
+      class="btn btn-primary" type="button" style="margin-top:6px;">
+      {{ proposedKeys.has(matchKey(m)) ? 'Requested ✓' : 'Propose Exchange' }}
+    </button>
+  </li>
+</ul>
+
+   <h3 style="margin-top:20px;">3-Way Matches</h3>
+    <div *ngIf="indirectMatches.length === 0">No 3-way matches found.</div>
+    <ul>
+      <li *ngFor="let m of indirectMatches" style="margin-bottom: 15px; border:1px solid #eee; padding:10px; border-radius:6px;">
+        <div>
+                   <strong>{{ m.userAName }}</strong> offers <em>{{ m.userAOfferedSkill }}</em> →
+          <strong>{{ m.userBName }}</strong> ⭐{{ m.userBRating | number:'1.1-1' }} offers <em>{{ m.userBOfferedSkill }}</em> →
+          <strong>{{ m.userCName }}</strong> ⭐{{ m.userCRating | number:'1.1-1' }} offers <em>{{ m.userCOfferedSkill }}</em> → the cycle closes to you
+        </div>
+        
+        <button (click)="proposeThreeWayExchange(m)" class="btn btn-primary" type="button" style="margin-top:6px;">
+          Propose 3-Way Exchange
+        </button>
+
+      <div *ngIf="exchangeMessage" class="alert">
+        {{ exchangeMessage }}
+      </div>
+        </li>
+      </ul>
+    </div>
+
+  <!-- ================= TAB: TRUST NETWORK ================= -->
+  <div *ngIf="activeTab === 'trust'">
+    <h2>Trust Network</h2>
+    <div class="form-group-inline" style="gap:8px;">
+      <select [(ngModel)]="trustTargetId" style="padding:6px;">
+        <option [ngValue]="null">-- Select a user --</option>
+        <option *ngFor="let u of allUsers" [ngValue]="u.id">{{ u.name }}</option>
+      </select>
+      <button (click)="checkTrustDistance()" class="btn btn-primary" type="button">Check Trust Distance</button>
+    </div>
+    <div *ngIf="trustError" style="color:red; margin-top:8px;">{{ trustError }}</div>
+    <div *ngIf="trustResult !== null" style="margin-top:10px;">
+      <span *ngIf="trustResult === -1">There is no trust relatioship between users.</span>
+      <span *ngIf="trustResult === 0">It's you.</span>
+      <span *ngIf="trustResult! > 0">Trust distance: <strong>{{ trustResult }}</strong> step/s.</span>
+    </div>
+  </div>
+
+  <!-- ================= TAB: EXCHANGES & REVIEWS ================= -->
+      <div *ngIf="activeTab === 'exchanges'">
+    <h2>My Exchanges</h2>
+    <div *ngIf="exchangeMessage">{{ exchangeMessage }}</div>
+
+    <div class="form-group-inline" style="gap:6px; margin-bottom:12px;">
+      <button (click)="setExchangeFilter('ALL')" class="btn" [class.btn-primary]="exchangeStatusFilter==='ALL'" [class.btn-ghost]="exchangeStatusFilter!=='ALL'" type="button">All</button>
+      <button (click)="setExchangeFilter('PENDING')" class="btn" [class.btn-primary]="exchangeStatusFilter==='PENDING'" [class.btn-ghost]="exchangeStatusFilter!=='PENDING'" type="button">Pending</button>
+      <button (click)="setExchangeFilter('COMPLETED')" class="btn" [class.btn-primary]="exchangeStatusFilter==='COMPLETED'" [class.btn-ghost]="exchangeStatusFilter!=='COMPLETED'" type="button">Completed</button>
+      <button (click)="setExchangeFilter('CANCELLED')" class="btn" [class.btn-primary]="exchangeStatusFilter==='CANCELLED'" [class.btn-ghost]="exchangeStatusFilter!=='CANCELLED'" type="button">Cancelled</button>
+    </div>
+
+    <div *ngIf="filteredExchanges.length === 0">No exchanges in this category.</div>
+    <ul>
+        <li *ngFor="let e of visibleExchanges"
+              style="border:1px solid #eee; padding:8px; margin-bottom:8px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+            <div>
+              <div>#{{ e.id }} — <strong>{{ e.status }}</strong></div>
+              <div>{{ e.requesterName }} offers <em>{{ e.offeredSkillName }}</em> ↔ {{ e.providerName }} offers <em>{{ e.requestedSkillName }}</em></div>
+            </div>
+            <div style="display:flex; gap:6px; flex-shrink:0;">
+              <button *ngIf="e.status === 'PENDING' && e.providerId === currentUser?.id"
+                      (click)="completeExchangeById(e.id)" class="btn btn-primary" type="button">
+                Mark Completed
+              </button>
+              <button *ngIf="e.status === 'PENDING'"
+                      (click)="cancelExchangeById(e.id)" class="btn-delete" type="button">
+                Cancel
+              </button>
+              <button *ngIf="e.status === 'CANCELLED'"
+                      (click)="deleteExchangeById(e.id)" class="btn-delete" type="button">
+                Delete
+              </button>
+          </div>
+        </li>
+    </ul>
+
+    <button *ngIf="filteredExchanges.length > visibleExchanges.length"
+            (click)="showMoreExchanges()" class="btn btn-ghost" type="button" style="margin-top:8px;">
+      Show more ({{ filteredExchanges.length - visibleExchanges.length }} more)
+    </button>
+
+    <h2 style="margin-top:24px;">Reviews</h2>
+    <div *ngIf="reviewMessage">{{ reviewMessage }}</div>
+    <div class="form-group-inline" style="flex-direction:column; gap:8px; max-width:300px;">
+      <input type="number" [(ngModel)]="newReview.exchangeId" placeholder="Exchange ID (needs to be COMPLETED)">
+      <input type="number" [(ngModel)]="newReview.score" min="1" max="5" placeholder="Score (1-5)">
+      <textarea [(ngModel)]="newReview.comment" placeholder="Comment"></textarea>
+      <button (click)="submitReview()" class="btn btn-primary" type="button">Submit Review</button>
+    </div>
+
+    <h3 style="margin-top:16px;">Reviews I've Received</h3>
+    <div *ngIf="userReviews.length === 0">No reviews yet.</div>
+    <ul>
+      <li *ngFor="let r of userReviews" style="margin-bottom:6px; border:1px solid #eee; padding:6px; border-radius:6px;">
+        Score: <strong>{{ r.score }}/5</strong>
+        <span *ngIf="r.comment"> — "{{ r.comment }}"</span>
+        <div style="font-size:0.8em; color:#6c6b6b;">Exchange #{{ r.exchangeId }} · {{ r.createdAt | date:'short' }}</div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ================= TAB: PROFILE ================= -->
+  <div *ngIf="activeTab === 'profile'">
+    <h2>My Profile</h2>
+    <div *ngIf="profileMessage">{{ profileMessage }}</div>
+
+    <div *ngIf="!isEditingProfile">
+      <p><strong>Name:</strong> {{ currentUser?.name }}</p>
+      <p><strong>Email:</strong> {{ currentUser?.email }}</p>
+      <p><strong>Rating:</strong> ⭐ {{ (currentUser?.rating ?? 0) | number:'1.1-1' }}</p>
+
+      <button (click)="startEditProfile()" class="btn btn-primary" type="button">Edit Profile</button>
+      <button (click)="deleteAccount()" class="btn-delete" type="button" style="margin-left:8px;">Delete Account</button>
+    </div>
+
+    <div *ngIf="isEditingProfile" class="form-group-inline" style="flex-direction:column; gap:8px; max-width:300px;">
+      <input type="text" [(ngModel)]="profileForm.name" placeholder="Name">
+      <input type="email" [(ngModel)]="profileForm.email" placeholder="Email">
+      <button (click)="saveProfile()" class="btn btn-primary" type="button">Save</button>
+      <button (click)="cancelEditProfile()" class="btn btn-ghost" type="button">Cancel</button>
+    </div>
+  </div>
+
+</div>

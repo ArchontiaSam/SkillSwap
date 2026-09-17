@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: skillswap
+
+  #Connect with data base PostgreSQL
+  datasource:
+    url: jdbc:postgresql://localhost:5432/skillswap_db
+    username: postgres
+    password: 1818
+    driver-class-name: org.postgresql.Driver
+
+  # Settings JPA/Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: update    
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true

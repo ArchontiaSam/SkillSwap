@@ -1,0 +1,56 @@
+<div class="register" style="max-width:400px; margin: 50px auto; padding: 20px;">
+    <h1>SkillSwap</h1>
+    <h2>create user </h2>
+
+    <div *ngIf="errorMessage" class="alert-error" style="color: red; margin-bottom: 10px; font-weight: bold;">
+        {{ errorMessage }}
+    </div>
+
+    <!-- ⬅️ Περάσαμε το registerForm μέσα στη συνάρτηση -->
+    <form (ngSubmit)="onRegister(registerForm)" #registerForm="ngForm">
+
+        <div style="margin-bottom: 15px;">
+            <label>Username:</label><br>
+            <input type="text" [(ngModel)]="user.name" name="username" required minlength="3" #username="ngModel">
+            
+            <div *ngIf="username.invalid && (username.dirty || username.touched)" style="color: #d9534f; font-size: 12px; margin-top: 4px;">
+                <small *ngIf="username.errors?.['required']">Username is required.</small>
+                <small *ngIf="username.errors?.['minlength']">Must have at least 3 characters long.</small>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label>Email:</label><br>
+            <input type="email" [(ngModel)]="user.email" name="email" required 
+                   email 
+                   #email="ngModel">
+            <!-- Message if email is invalid -->
+            <div *ngIf="email.invalid && (email.dirty || email.touched)" style="color: #d9534f; font-size: 12px; margin-top: 4px;">
+                <small *ngIf="email.errors?.['required']">Email is required.</small>
+                <small *ngIf="email.errors?.['email']">Please enter a valid email.</small>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label>Password:</label><br>
+            <input type="password" [(ngModel)]="user.password" name="password" required 
+                   minlength="6" 
+                   #password="ngModel">
+            <!-- Message if password is small -->
+            <div *ngIf="password.invalid && (password.dirty || password.touched)" style="color: #d9534f; font-size: 12px; margin-top: 4px;">
+                <small *ngIf="password.errors?.['required']">Password is required.</small>
+                <small *ngIf="password.errors?.['minlength']">Password must be at least 6 characters long.</small>
+            </div>
+        </div>
+
+        <button type="submit">Register</button>
+    </form>
+    
+    <p *ngIf="successMessage" style="color: green; margin-top: 15px;">{{ successMessage }}</p>
+
+    <div style="margin-top: 15px;">
+        <p style="margin-bottom: 1px;">Already have an Account?</p>
+        <button routerLink="/login" type="button" style="background-color: #6c757d; color: white;">Go to Login</button>
+    </div>
+
+</div>
