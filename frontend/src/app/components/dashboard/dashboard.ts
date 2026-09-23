@@ -265,32 +265,6 @@ export class Dashboard implements OnInit {
       }
     });
   }
-
-  // ==========================================
-  // TRUST DISTANCE
-  // ==========================================
-  // trustTargetId: number | null = null;
-  // trustResult: number | null = null;
-  // trustError: string = '';
-
-  // checkTrustDistance() {
-  //   this.trustError = '';
-  //   this.trustResult = null;
-  //   if (!this.currentUser?.id || !this.trustTargetId) {
-  //     this.trustError = 'Provide a valid Target User ID.';
-  //     return;
-  //   }
-  //   this.apiService.getTrustDistance(this.currentUser.id, this.trustTargetId).subscribe({
-  //     next: (res: number) => {
-  //       this.trustResult = res;
-  //       this.cdr.detectChanges();
-  //     },
-  //     error: (err) => {
-  //       console.error('Error fetching trust distance:', err);
-  //       this.trustError = 'Error fetching trust distance.';
-  //     }
-  //   });
-  // }
     // ==========================================
     // TRUST DISTANCE
     // ==========================================
@@ -540,7 +514,6 @@ export class Dashboard implements OnInit {
     });
   }
 
-  
   // ==========================================
   // MY RATING
   // ==========================================
