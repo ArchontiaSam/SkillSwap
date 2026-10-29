@@ -15,7 +15,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleDataIntegrity(DataIntegrityViolationException ex) {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
-                .body(Map.of("message", "Δεν μπορεί να διαγραφεί/ενημερωθεί: χρησιμοποιείται ήδη σε άλλη εγγραφή (π.χ. exchange)."));
+                .body(Map.of("message", "Cannot delete/update: it is already in use by another record"));
     }
 
     @ExceptionHandler(RuntimeException.class)
